@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>แสดงข้อมูลสินค้าและกราฟ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Axios -->
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -30,17 +30,45 @@
       margin-bottom: 20px;
       font-size: 16px;
       cursor: pointer;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
     ul {
       list-style: none;
       padding: 0;
+      max-width: 800px;
+      margin: 0 auto 30px auto;
     }
     li {
-      margin-bottom: 15px;
       background: #fff;
-      padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    li img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      border-radius: 6px;
+      flex-shrink: 0;
+      background: #f0f0f0;
+    }
+    li div {
+      flex-grow: 1;
+    }
+    li strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    li .price {
+      font-size: 14px;
+      color: #555;
     }
     canvas {
       max-width: 100%;
@@ -48,6 +76,9 @@
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      height: 400px;
+      margin: 0 auto 40px auto;
+      display: block;
     }
   </style>
 </head>
@@ -56,8 +87,9 @@
   <h1>🛒 สินค้าจาก Fake Store API</h1>
   <button onclick="loadProducts()">ดึงข้อมูลสินค้า</button>
   <ul id="product-list"></ul>
+
   <h2>📊 กราฟราคาสินค้า</h2>
-  <canvas id="productChart" height="100"></canvas>
+  <canvas id="productChart"></canvas>
 
   <script>
     async function loadProducts() {
@@ -74,19 +106,25 @@
         const productNames = products.map(p => p.title);
         const productPrices = products.map(p => p.price);
 
-        // แสดงข้อมูลสินค้าในหน้าเว็บ
+        // แสดงสินค้าแบบมีรูป
         products.forEach(p => {
           const li = document.createElement("li");
-          li.innerHTML = `<strong>${p.title}</strong><br>💰 ราคา: $${p.price.toFixed(2)}`;
+          li.innerHTML = `
+            <img src="${p.image}" alt="${p.title}" loading="lazy" />
+            <div>
+              <strong>${p.title}</strong>
+              <span class="price">💰 ราคา: $${p.price.toFixed(2)}</span>
+            </div>
+          `;
           productList.appendChild(li);
         });
 
-        // สุ่มสีแต่ละแท่ง
+        // สุ่มสีแท่งกราฟ
         const barColors = products.map(() =>
           `hsl(${Math.random() * 360}, 70%, 60%)`
         );
 
-        // ล้างกราฟเก่าหากมี
+        // ล้างกราฟเก่าถ้ามี
         if (window.myChart) {
           window.myChart.destroy();
         }
@@ -110,55 +148,35 @@
               title: {
                 display: true,
                 text: 'กราฟแสดงราคาสินค้าจาก Fake Store API',
-                font: {
-                  size: 20
-                }
+                font: { size: 20 }
               },
-              legend: {
-                display: false
-              },
+              legend: { display: false },
               datalabels: {
                 anchor: 'end',
                 align: 'top',
                 color: '#111',
-                font: {
-                  weight: 'bold',
-                  size: 12
-                },
-                formatter: function (value) {
-                  return '$' + value.toFixed(2);
-                }
+                font: { weight: 'bold', size: 12 },
+                formatter: value => '$' + value.toFixed(2)
               },
               tooltip: {
                 callbacks: {
-                  label: function (context) {
-                    return 'ราคา: $' + context.parsed.y.toFixed(2);
-                  }
+                  label: ctx => 'ราคา: $' + ctx.parsed.y.toFixed(2)
                 }
               }
             },
             scales: {
               x: {
-                ticks: {
-                  maxRotation: 60,
-                  minRotation: 45,
-                  color: '#333'
-                }
-              },
-              y: {
+                beginAtZero: true,
+                ticks: { color: '#333', stepSize: 20 },
                 title: {
                   display: true,
                   text: 'ราคา (USD)',
                   color: '#333',
-                  font: {
-                    size: 14
-                  }
-                },
-                ticks: {
-                  color: '#333',
-                  stepSize: 20
-                },
-                beginAtZero: true
+                  font: { size: 14 }
+                }
+              },
+              y: {
+                ticks: { color: '#333', font: { size: 11 } },
               }
             }
           },
